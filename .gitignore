@@ -1,0 +1,11 @@
+# Project exclude paths
+/api-gateway/target/
+/discovery-server/target/
+/role-service/target/
+/room-connection-service/target/
+/room-service/target/
+/server-connection-service/target/
+/server-service/target/
+/text-chatting-service/target/
+/user-service/target/
+/web-socket-api-gateway/target/

@@ -1,0 +1,208 @@
+version: '3.7'
+services:
+
+  mysql-discord:
+    container_name: mysql-discord
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: yahya
+      MYSQL_PASSWORD: Wydad3719
+    ports:
+      - "3366:3306"
+    volumes:
+      - ./data/mysql_discord:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+
+
+  keycloak:
+    container_name: keycloak-discord
+    image: quay.io/keycloak/keycloak:18.0.0
+    command: [ "start-dev", "--http-port=8180", "--features=preview" ]
+    environment:
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      KEYCLOAK_ADMIN: yahya
+      KEYCLOAK_ADMIN_PASSWORD: Wydad3719
+      KEYCLOAK_FRONTEND_URL: http://keycloak-discord:8180
+    ports:
+      - "8180:8180"
+    expose:
+      - "8180"
+    volumes:
+      - ./realms/:/opt/keycloak/data/import/
+
+  rabbitmq:
+    container_name: rabbitmq-discord
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: yahya
+      RABBITMQ_DEFAULT_PASS: Wydad3719
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+
+
+  redis:
+    container_name: redis-discord
+    image: redis:6.2.6
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+
+  discovery-server:
+    image: yahyadocker666/discovery-server:latest
+    container_name: discovery-server-discord
+    pull_policy: always
+    ports:
+      - "8762:8762"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+
+  api-gateway:
+    image: yahyadocker666/api-gateway:latest
+    container_name: api-gateway-discord
+    pull_policy: always
+    ports:
+      - "6060:6060"
+    expose:
+      - "6060"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+
+  web-socket-api-gateway:
+    image: yahyadocker666/web-socket-api-gateway:latest
+    container_name: web-socket-api-gateway-discord
+    pull_policy: always
+    ports:
+      - "7070:7070"
+    expose:
+      - "7070"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+
+
+  user-service:
+    image: yahyadocker666/user-service:latest
+    container_name: user-service-discord
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+    volumes:
+        - discord-users-images:/discord-users-images
+
+
+  role-service:
+    image: yahyadocker666/role-service:latest
+    container_name: role-service-discord
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+
+
+  room-connection-service:
+    image: yahyadocker666/room-connection-service:latest
+    container_name: room-connection-service-discord
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+    depends_on:
+      - rabbitmq
+      - redis
+
+  room-connection-service-clone:
+    image: yahyadocker666/room-connection-service:latest
+    container_name: room-connection-service-discord-clone
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+    depends_on:
+      - rabbitmq
+      - redis
+
+
+  room-service:
+    image: yahyadocker666/room-service:latest
+    container_name: room-service-discord
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+
+
+  server-connection-service:
+    image: yahyadocker666/server-connection-service:latest
+    container_name: server-connection-service-discord
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+    depends_on:
+      - rabbitmq
+
+
+  server-service:
+    image: yahyadocker666/server-service:latest
+    container_name: server-service-discord
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+    volumes:
+      - discord-servers-images:/discord-servers-images
+
+
+  text-chatting-service:
+    image: yahyadocker666/text-chatting-service:latest
+    container_name: text-chatting-discord
+    pull_policy: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Africa/Casablanca
+      - FFMPEG_PATH=/usr/bin/ffmpeg
+      - FFPROBE_PATH=/usr/bin/ffprobe
+
+    volumes:
+      - discord-messages-media:/discord-messages-media
+
+volumes:
+  discord-messages-media:
+  discord-servers-images:
+  discord-users-images:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
